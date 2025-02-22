@@ -1,91 +1,72 @@
+import random
+from BlackJackCarpet.Carta import Carta
 
-valoresMonedas = [2,1,0.50,0.20,0.10,0.05]
-reservaMonedas = [20,20,20,20,20,20]
-nombreProductos=["agua","refresco","Jugo"]
-precioProductos=[0.50,0.75,0.95]
+PALOS = ['♥️', '♦️', '♣️', '♠️']
+VALORES = ['A'] + [str(n) for n in range(2, 11)] + ['J', 'Q', 'K']
 
-def printMenu(nombres,precios):
-    if len(nombres) != len(nombres):
-        return False
-    textoMenu = "Hola ¿que desea?\n"
-    for i in range(len(nombres)):
-        textoMenu += f"{i+1}. {nombres[i]} : {precios[i]}\n"
-    textoMenu += f"{len(nombres) + i} - Salir"
-    print(textoMenu)
+def crear_mazo():
+    mazo = []
+    for palo in PALOS:
+        for valor in VALORES:
+            nombre = f"{valor}{palo}"
+            if valor in ['J', 'Q', 'K']:
+                valor_numerico = 10
+            elif valor == 'A':
+                valor_numerico = 11
+            else:
+                valor_numerico = int(valor)
+            mazo.append(Carta(palo, valor_numerico, nombre))
+    random.shuffle(mazo)
+    return mazo
 
-def elegirProducto(producto):
-    opcion = input("Elija una opcion => ")
-    numeroProductos = []
-    for i in range (len(producto)):
-        numeroProductos.append(str(i+1))
+def calcular_valor(mano):
+    total = 0
+    aces = 0
+    for carta in mano:
+        if carta.nombre.startswith('A'):
+            total += 11
+            aces += 1
+        else:
+            total += carta.valor
+    while total > 21 and aces:
+        total -= 10
+        aces -= 1
+    return total
 
-    while opcion not in numeroProductos:
-        opcion = input("Elija una opcion valida => ")
-    return int(opcion)-1
+def mostrar_mano(mano):
+    return ', '.join(str(carta) for carta in mano)
 
+def juego():
+    mazo = crear_mazo()
+    jugador = [mazo.pop(), mazo.pop()]
+    casa = [mazo.pop(), mazo.pop()]
+    print("Tus cartas:", mostrar_mano(jugador), "| Valor:", calcular_valor(jugador))
+    print("Carta visible de la casa:", str(casa[0]))
+    while calcular_valor(jugador) < 21:
+        decision = input("¿Pedir o plantarse? ").lower()
+        if decision == 'pedir':
+            jugador.append(mazo.pop())
+            print("Tus cartas:", mostrar_mano(jugador), "| Valor:", calcular_valor(jugador))
+        elif decision == 'plantarse':
+            break
+        else:
+            print("Elige 'pedir' o 'plantarse'.")
+    if calcular_valor(jugador) > 21:
+        print("Te pasaste. ¡Perdiste!")
+        return
+    print("\nTurno de la casa.")
+    while calcular_valor(casa) < 17:
+        casa.append(mazo.pop())
+        print("Cartas de la casa:", mostrar_mano(casa), "| Valor:", calcular_valor(casa))
+    valor_jugador = calcular_valor(jugador)
+    valor_casa = calcular_valor(casa)
+    print("\nValor final del jugador:", valor_jugador)
+    print("Valor final de la casa:", valor_casa)
+    if valor_casa > 21 or valor_jugador > valor_casa:
+        print("¡Ganaste!")
+    elif valor_jugador == valor_casa:
+        print("Empate, gana la casa.")
+    else:
+        print("La casa gana.")
 
-def ingresarImporte(opcion):
-    precio = precioProductos[opcion]
-    importeUsuario =  0
-    monedasIntroducidas = []
-
-    while importeUsuario < precio:
-        print(f"Te falta introducir {round(precio-importeUsuario,2)}.")
-        moneda = ingresarMoneda()
-        importeUsuario += moneda
-        monedasIntroducidas.append(moneda)
-        if importeUsuario > precio:
-            resto = round(importeUsuario - precio,2)
-            darCambio(resto)
-        entregarProducto(nombreProductos[opcion])
-        sumarMonedas(monedasIntroducidas)
-
-def darCambio(resto):
-    monedasDevueltas = []
-    while resto != 0:
-        monedaDevuelta = False
-        contTipoMoneda = 0
-        while not monedaDevuelta and contTipoMoneda < len(valoresMonedas):
-            moneda = valoresMonedas[contTipoMoneda]
-            contTipoMoneda += 1
-            if moneda <= resto:
-                monedasDevueltas.append(moneda)
-                monedaDevuelta = True
-                resto -= moneda
-                resto = round(resto,2)
-    print(f"tu vuelto es : {monedasDevueltas}")
-    devolverMonedas(monedasDevueltas)
-
-def devolverMonedas(monedas):
-    for moneda in monedas:
-        reservaMonedas[valoresMonedas.index(moneda)] -= 1
-
-
-def entregarProducto(nombre):
-    print(f"Aqui va su {nombre}")
-
-
-
-def sumarMonedas(monedas):
-    for moneda in monedas:
-        reservaMonedas[valoresMonedas.index(moneda)] += 1
-
-
-def ingresarMoneda():
-    valoresValidos = []
-    for valor in valoresMonedas:
-        valoresValidos.append(str(valor))
-    moneda = input("Ingrese una moneda: ")
-    while moneda not in valoresValidos:
-        moneda = input("Ingrese una moneda correcta: ")
-    return float (moneda)
-
-printMenu(nombreProductos, precioProductos)
-opcion = elegirProducto(nombreProductos)
-
-if opcion == len(nombreProductos)+1:
-    print("gracias por la compra")
-else:
-    ingresarImporte(opcion)
-    print(valoresMonedas)
-    print(reservaMonedas)
+juego()
