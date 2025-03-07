@@ -9,19 +9,6 @@ dicionarioAnidados = {
         2:"sup"}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 diccionarioConListas = {
     "maokai" : ["champ de lol muy bueno que se juega support o top"],
         "adc":["jinx,ezreal",],
@@ -36,18 +23,6 @@ while palabraNuev != "exit":
 
 with open("diccionario","w", encoding="utf-8") as file:
     json.dump(diccionarioConListas,file,indent=4)
-
-
-
-
-
-
-
-
-
-
-
-
 
 print(dicionarioAnidados["lux"][1])
 
